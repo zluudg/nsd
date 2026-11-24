@@ -7,7 +7,7 @@ sinclude(dnstap/dnstap.m4)
 
 # autoconf-2.70 is needed for @runstatedir@
 AC_PREREQ([2.70])
-AC_INIT([NSD],[4.15.1],[https://github.com/NLnetLabs/nsd/issues or nsd-bugs@nlnetlabs.nl])
+AC_INIT([NSD],[4.15.5],[https://github.com/NLnetLabs/nsd/issues or nsd-bugs@nlnetlabs.nl])
 AC_CONFIG_HEADERS([config.h])
 
 #
@@ -983,6 +983,15 @@ case "$enable_ipv6" in
 		;;
 esac
 
+AC_ARG_ENABLE(multiple-catalog-zones, AS_HELP_STRING([--enable-multiple-catzones],[Enable experimental support for more than one catalog consumer zone]))
+case "$enable_multiple_catalog_zones" in
+        yes)
+		AC_DEFINE_UNQUOTED([MULTIPLE_CATALOG_CONSUMER_ZONES], [], [Define this to enable experimental support for more than one catalog consumer zone.])
+		;;
+        no|*)
+                ;;
+esac
+
 AC_ARG_ENABLE(bind8-stats, AS_HELP_STRING([--disable-bind8-stats],[Disable BIND8 like NSTATS & XSTATS and statistics in nsd-control]))
 
 case "$enable_bind8_stats" in
@@ -1122,7 +1131,7 @@ AC_INCLUDES_DEFAULT
 
 	BAKLIBS="$LIBS"
 	LIBS="-lssl $LIBS"
-	AC_CHECK_FUNCS([OPENSSL_init_ssl SSL_get1_peer_certificate SSL_CTX_set_security_level ERR_load_SSL_strings])
+	AC_CHECK_FUNCS([OPENSSL_init_ssl SSL_get1_peer_certificate SSL_CTX_set_security_level ERR_load_SSL_strings SSL_CTX_set_session_id_context])
 	if test "$ac_cv_func_ERR_load_SSL_strings" = "yes"; then
 		ACX_FUNC_DEPRECATED([ERR_load_SSL_strings], [(void)ERR_load_SSL_strings();], [
 #include <openssl/ssl.h>

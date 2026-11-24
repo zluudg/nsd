@@ -401,8 +401,9 @@ rdatas_equal(const rr_type *rr1, const rr_type *rr2, uint16_t type,
 			}
 			offset += field_len1;
 			continue;
-		} else if(descriptor->rdata.fields[i].length ==
-			RDATA_LITERAL_DNAME) {
+		} else if(descriptor->rdata.fields[i].length == RDATA_LITERAL_DNAME
+		       || descriptor->rdata.fields[i].length == RDATA_IPSECGATEWAY
+		       || descriptor->rdata.fields[i].length == RDATA_AMTRELAY_RELAY) {
 			uint8_t length1, length2;
 			const uint8_t *name1 = rr1->rdata + offset;
 			const uint8_t *name2 = rr2->rdata + offset;
@@ -522,6 +523,7 @@ nsec3_delete_rr_trigger(namedb_type* db, rr_type* rr, zone_type* zone)
 	/* see if the domain was an NSEC3-domain in the chain, but no longer */
 	if(rr->type == TYPE_NSEC3 && rr->owner->nsec3 &&
 		rr->owner->nsec3->nsec3_node.key &&
+		nsec3_has_owner_for_zone(rr->owner, zone) &&
 		nsec3_rr_uses_params(rr, zone) &&
 		nsec3_in_chain_count(rr->owner, zone) <= 1) {
 		domain_type* prev = nsec3_chain_find_prev(zone, rr->owner);
@@ -640,6 +642,7 @@ nsec3_add_rr_trigger(namedb_type* db, rr_type* rr, zone_type* zone)
 	 * in the udb has been adjusted) */
 	if(zone->nsec3_param && rr->type == TYPE_NSEC3 &&
 		(!rr->owner->nsec3 || !rr->owner->nsec3->nsec3_node.key)
+		&& nsec3_has_owner_for_zone(rr->owner, zone)
 		&& nsec3_rr_uses_params(rr, zone)) {
 		if(!zone->nsec3_last) {
 			/* all nsec3s have previously been deleted, but
@@ -1318,7 +1321,7 @@ apply_ixfr(nsd_type* nsd, FILE *in, uint32_t serialno,
 			region_destroy(region);
 			return 0;
 		}
-		if (klass != CLASS_IN) {
+		if (klass != CLASS_IN && type != TYPE_OPT) {
 			log_msg(LOG_ERR, "bad xfr non-IN-class RR %s %s %s",
 				dname_to_string(owner,0),
 				rrclass_to_string(klass),

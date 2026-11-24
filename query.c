@@ -249,7 +249,9 @@ query_reset(query_type *q, size_t maxlen, int is_tcp)
 	region_free_all(q->region);
 	q->remote_addrlen = (socklen_t)sizeof(q->remote_addr);
 	q->client_addrlen = (socklen_t)sizeof(q->client_addr);
-	q->is_proxied = 0;
+	q->may_pad = 0;
+	if(!is_tcp)
+		q->is_proxied = 0;
 	q->maxlen = maxlen;
 	q->reserved_space = 0;
 	buffer_clear(q->packet);
@@ -1054,7 +1056,8 @@ answer_nodata(struct query *query, answer_type *answer, domain_type *original)
 	answer_soa(query, answer);
 
 #ifdef NSEC3
-	if (query->edns.dnssec_ok && query->zone->nsec3_param) {
+	if (query->edns.dnssec_ok && query->zone->nsec3_param &&
+		zone_is_secure(query->zone)) {
 		nsec3_answer_nodata(query, answer, original);
 	} else
 #endif
@@ -1281,9 +1284,6 @@ answer_authoritative(struct nsd   *nsd,
 			return;
 		}
 		DEBUG(DEBUG_QUERY,2, (LOG_INFO, "->result is %s", dname_to_string(newname, NULL)));
-		if (q->cname_count >= MAX_CNAME_CHAIN) {
-			return;
-		}
 
 		/* follow the DNAME */
 		(void)namedb_lookup(nsd->db, newname, &closest_match, &closest_encloser);
@@ -1299,6 +1299,9 @@ answer_authoritative(struct nsd   *nsd,
 			/* The synthesized CNAME is the answer to
 			 * that query, same as BIND does for query
 			 * of type CNAME */
+			return;
+		}
+		if (q->cname_count >= MAX_CNAME_CHAIN) {
 			return;
 		}
 
@@ -1825,6 +1828,16 @@ query_process(query_type *q, nsd_type *nsd, uint32_t *now_p)
 		cookie_verify(q, nsd, now_p);
 
 	query_prepare_response(q);
+	if(q->reserved_space + QHEADERSZ + (size_t)q->qname->name_size +
+		2 /* qtype */ + 2 /* qclass */ > q->maxlen) {
+		/* Clear out some space, and return error, it does not fit. */
+		q->edns.status = EDNS_NOT_PRESENT;
+		q->tsig.status = TSIG_NOT_PRESENT;
+		if(q->tcp)
+			return query_error(q, NSD_RC_SERVFAIL);
+		TC_SET(q->packet);
+		return query_error(q, NSD_RC_OK);
+	}
 
 	if (q->qclass != CLASS_IN && q->qclass != CLASS_ANY) {
 		if (q->qclass == CLASS_CH) {
@@ -1855,6 +1868,7 @@ void
 query_add_optional(query_type *q, nsd_type *nsd, uint32_t *now_p)
 {
 	struct edns_data *edns = &nsd->edns_ipv4;
+	const dname_type* report_channel = NULL;
 #if defined(INET6)
 	if (q->client_addr.ss_family == AF_INET6) {
 		edns = &nsd->edns_ipv6;
@@ -1888,6 +1902,25 @@ query_add_optional(query_type *q, nsd_type *nsd, uint32_t *now_p)
 			                           +  sizeof(uint8_t)
 			                           +  sizeof(uint8_t)
 			                           +  sizeof(uint32_t);
+		if(q->zone
+		&& q->zone->opts
+		&& q->zone->opts->pattern
+		&& q->zone->opts->pattern->report_channel
+		&& q->zone->opts->pattern->report_channel->name_size)
+			report_channel = q->zone->opts->pattern->report_channel;
+
+		else if(nsd->options->report_channel
+		     && nsd->options->report_channel->name_size)
+			report_channel = nsd->options->report_channel;
+
+		if(report_channel && buffer_available(q->packet,
+				2 + q->edns.opt_reserved_space +
+				4 + report_channel->name_size)) {
+			q->edns.opt_reserved_space +=
+				4 + report_channel->name_size;
+		} else
+			report_channel = NULL;
+
 		if(q->edns.padding) {
 			size_t cur_sz = buffer_position(q->packet) + 2 + q->edns.opt_reserved_space;
 			size_t padded_sz = (((cur_sz - 1) / PADDING_BLOCK_SZ) + 1) * PADDING_BLOCK_SZ;
@@ -1957,6 +1990,12 @@ query_add_optional(query_type *q, nsd_type *nsd, uint32_t *now_p)
 					buffer_write(q->packet,
 							q->edns.ede_text,
 							q->edns.ede_text_len);
+			}
+			if(report_channel) {
+				buffer_write_u16(q->packet, REPORT_CHANNEL_CODE);
+				buffer_write_u16(q->packet, report_channel->name_size);
+				buffer_write(q->packet, dname_name(report_channel)
+				                      , report_channel->name_size);
 			}
 			if(q->edns.padding) {
 				assert(q->edns.padding >= 4);

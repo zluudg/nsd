@@ -1,3 +1,148 @@
+20 November 2026: Wouter
+	- Fix man page for VERIFY_IP_ADDRESS and VERIFY_IP_ADDRESSES.
+
+5 November 2026: Wouter
+	- Fix leaked tcp usage counter if no free buffer can be found
+	  for secondary transfer.
+
+21 October 2026: Willem
+	- Continue with 4.15.5 for development
+
+12 October 2026: Willem
+	- Merge #527: Eliminate excess error message in XoT transfer
+	  Thanks Ferran Tufan
+	- Merge #515: The UNECE and ISO RR types
+
+12 October 2026: Wouter
+	- Fix #526 from jpmens: Fix typo in nsd.conf.5.in
+
+9 October 2026: Wouter
+	- Fix #523: systemd support is incomplete. Implements
+	  Type=notify-reload with systemctl reload nsd support.
+
+2 October 2026: Willem
+	- A catalog-group-pattern option to limit the patterns from which
+	  catalog consumer member zones may be configured by using the group
+	  property.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the suggestion.
+	- Fix to deny CAA RRs from primaries with an empty tag.
+	  Thanks Qifan Zhang, Palo Alto Networks, for the report.
+
+30 September 2026: Willem
+	- Fix to compare the dname variant of an AMTRELAY relay and IPSECKEY
+	  gateway RDATA field case insensitively when they are removed by way
+	  of IXFR.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+
+26 September 2026: Willem
+	- Fix to not crash when more than one group property is parsed from a
+	  consumer catalog member zone, with only one of them valid.
+	  Thanks to Yuxiao Wu, Yunyi Zhang, Baojun Liu, and Haixin Duan
+	  from Tsinghua University, for the report and suggested fix.
+	- Fix that when printing rdata, fixed sized writes will not overflow
+	  the buffer.
+	  Thanks to Yuxiao Wu, Yunyi Zhang, Baojun Liu, and Haixin Duan
+	  from Tsinghua University, for the report and suggested fix.
+
+22 September 2026: Willem
+	- Fix to not wrap the rdlength variable for SVCB RRs with an rdlength
+	  larger than 65528 (and a short TargetName rdata field, like .).
+	  Thanks to Zanya <tea915656@gmail.com> for the report.
+
+16 September 2026: Willem
+	- A report-channel config option to return a Report-Channel EDNS option
+	  in responses
+
+10 September 2026: Willem
+	- Merge #511: Fix to retry a catalog consumer zone over AXFR if IXFR
+	  failed to apply
+
+9 September 2026: Wouter
+	- Fix #510: Missing NSEC3 records for next-closer in case of
+	  ENT, NSEC3 and opt-out.
+
+3 September 2026: Willem
+	- Fix handling malformed SOA records with a short rdata content with
+	  incremental transfers. Thanks to Tristan Madani for the report.
+
+3 September 2026: Wouter
+	- Fix makedist.sh to omit .cirrus.yml ci integration.
+
+2 September 2026: Willem
+	- Continue with 4.15.3 for development
+
+28 August 2026: Willem
+	- Fix client certificate checking by linking the tls-auth-name
+	  requirement on an access control list item, to the other requirements
+	  (IP address and/or TSIG key) on the same list item.
+	  Thanks to voguemerry for the report
+
+24 August 2026: Willem
+	- Merge #502: An `udp-padding-port` configuration file option to enable
+	  responding to the padding option on UDP, but on specific ports only.
+	  This is convenient for setups where NSD is behind a frontend handling
+	  the DNS over TLS.
+	- `--enable-multiple-catalog-zones` option to configure to enable
+	  experimental support for multiple catalog consumer zones.
+
+19 August 2026: Willem
+	- Continue with 4.15.2 for development
+
+17 August 2026: Willem
+	- Fix for CVE-2026-18664: IP range access control restrictions are
+	  bypassed for some unintended IP.
+	  Thanks to Qifan Zhang, Palo Alto Networks for the report
+	  https://www.nlnetlabs.nl/downloads/nsd/CVE-2026-18664.txt
+	- Fix for CVE-2026-18916: Any remote client can denial TCP service by
+	  throttling the TCP receive window (down to 1).
+	  Thanks to Qifan Zhang, Palo Alto Networks for the report
+	  https://www.nlnetlabs.nl/downloads/nsd/CVE-2026-18916.txt
+	- Fix for CVE-2026-19401: Any remote client can denial UDP service by
+	  sending a specifically crafted query with multiple DNS Cookie options.
+	  Thanks to Qifan Zhang, Palo Alto Networks for the report
+	  https://www.nlnetlabs.nl/downloads/nsd/CVE-2026-19401.txt
+	- Fix for CVE-2026-19538: Anyone with access to the proxy protocol port
+	  over TCP or TLS can bypass BLOCKED access control items.
+	  Thanks to Qifan Zhang, Palo Alto Networks for the report
+	  https://www.nlnetlabs.nl/downloads/nsd/CVE-2026-19538.txt
+
+14 August 2026: Willem
+	- Fix to ignore NSEC3 records with malformed owner name. In depth fix
+	  to clear key for NSEC3 tree collisions. And a fix to limit the
+	  reenactment of failed reloads, that ordinarily marks transfers as
+	  corrupt, so that for crashes it waits with that zone for retry. This
+	  allows other zones to update in the meantime.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+	- Fix nsd-control reconfig so that change of a secondary zone while it
+	  is on the udp or tcp waiting list does not crash after that.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+	- Fix to reset the length of the incoming packet buffer after a failed
+	  PROXYv2 header on UDP. It can cause an assertion failure on the next
+	  packet.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+	- Fix XoT transfer authentication to not fall back to the common name
+	  if a DNS name is present in the certificate. This fixes the RFC6125
+	  conformance.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+	- Fix dnstap over TLS certificate check for reconnection. Also clean up
+	  file descriptor and SSL state on connection failures.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+
+3 August 2026: Willem
+	- An `allow-proxy` configuration file option to specify allow access
+	  control list for the PROXYv2 protocol port.
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the suggestion.
+	- Fix to prevent a configured primary from hampering loading its own
+	  zone by providing a transfer with the OPT RR in the answer section
+	  and the UDP Payload size (i.e. class) of the OPT RR set to something
+	  else than 1 (IN).
+	  Thanks to Qifan Zhang, Palo Alto Networks, for the report.
+
+29 July 2026: Wouter
+	- Fix that when DNAME is limited due to the maximum CNAME chain
+	  length, it copies the final DNAME with its CNAME into the
+	  packet. Also fix unit test for limit on CNAME chain length.
+
 16 July 2026: Willem
 	- Merge #500: Support for the "oots" SVCB Service Parameter Key
 

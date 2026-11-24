@@ -21,6 +21,7 @@ struct query;
 #define COOKIE_CODE    10               /* COOKIE option code */
 #define PADDING_CODE   12               /* Padding option code */
 #define EDE_CODE       15               /* Extended DNS Errors option code */
+#define REPORT_CHANNEL_CODE 18          /* Monitoring agent domain */
 #define ZONEVERSION_CODE 19             /* ZONEVERSION option code */
 #define DNSSEC_OK_MASK  0x8000U         /* do bit mask */
 
@@ -69,6 +70,7 @@ struct edns_record
 	int                nsid;
 	int                zoneversion;
 	int                padding;
+	int		   cookie_seen;
 	cookie_status_type cookie_status;
 	size_t             cookie_len;
 	uint8_t            cookie[40];

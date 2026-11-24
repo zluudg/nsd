@@ -204,6 +204,7 @@ database{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_DATABASE;}
 identity{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_IDENTITY;}
 version{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_VERSION;}
 nsid{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_NSID;}
+report-channel{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_REPORT_CHANNEL;}
 logfile{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_LOGFILE;}
 log-only-syslog{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_LOG_ONLY_SYSLOG;}
 server-count{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_SERVER_COUNT;}
@@ -315,6 +316,7 @@ tls-auth-port{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_TLS_AUTH_PORT;}
 tls-auth-xfr-only{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_TLS_AUTH_XFR_ONLY;}
 tls-cert-bundle{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_TLS_CERT_BUNDLE; }
 proxy-protocol-port{COLON} { LEXOUT(("v(%s) ", yytext)); return VAR_PROXY_PROTOCOL_PORT; }
+allow-proxy{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_ALLOW_PROXY;}
 answer-cookie{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_ANSWER_COOKIE;}
 cookie-secret{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_COOKIE_SECRET;}
 cookie-secret-file{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_COOKIE_SECRET_FILE;}
@@ -330,6 +332,7 @@ verifier-count{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_VERIFIER_COUNT; }
 verifier-feed-zone{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_VERIFIER_FEED_ZONE; }
 verifier-timeout{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_VERIFIER_TIMEOUT; }
 catalog{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_CATALOG; }
+catalog-group-pattern{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_CATALOG_GROUP_PATTERN; }
 catalog-member-pattern{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_CATALOG_MEMBER_PATTERN; }
 catalog-producer-zone{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_CATALOG_PRODUCER_ZONE; }
 xdp-interface{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_XDP_INTERFACE; }
@@ -337,6 +340,7 @@ xdp-program-path{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_XDP_PROGRAM_PA
 xdp-program-load{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_XDP_PROGRAM_LOAD; }
 xdp-bpffs-path{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_XDP_BPFFS_PATH; }
 xdp-force-copy{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_XDP_FORCE_COPY; }
+udp-padding-port{COLON}		{ LEXOUT(("v(%s) ", yytext)); return VAR_UDP_PADDING_PORT;}
 {NEWLINE}		{ LEXOUT(("NL\n")); cfg_parser->line++;}
 
 servers={UNQUOTEDLETTER}*	{
